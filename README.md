@@ -1,2 +1,6 @@
 # mtghero
-MTG, TTS, SC API, JS, Node
+Watch this LIVE or rerun w/e on [Twitch](twitch.tv)
+
+## tech
+
+Scryfall API [docs](https://scryfall.com/docs/api)
