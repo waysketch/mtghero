@@ -2,9 +2,7 @@ const router = require("express").Router();
 
 router.route("/")
 .get(( _ , res) => {
-    res.json({
-        msg: "hello",
-    });
+    res.send("It's alive!!! mwhahahahahahahhah");
 });
 
 module.exports = router;
