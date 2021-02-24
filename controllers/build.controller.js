@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const axios = require('axios');
-const allSets = require('./current_sets');
+const allSets = require('./current_sets.js');
+const jimp = require('jimp');
+const fs = require('fs'); // Built into NodeJS. DO NOT -- npm install fs
+const path = require('path');
 
 // /Booster/Set/nuberOfPacks
 
@@ -10,15 +13,15 @@ router.route("/:set").get((req, res) => {
     let code = "error";
 
     // check if the set is in our list.
-    allSets.forEach( item => {
+    allSets.forEach( item => { //TODO: use RegEx to remove special char. exp. Th'rl Thrl
         if (item.name.toLocaleLowerCase().indexOf(set.toLocaleLowerCase()) !== -1) {
             code = item.code;
             return;
         };
     });
 
-    if (code === "error"){
-        res.send(`unable to find a set matching ${set}`)
+    if (code === "error") {
+        res.send(`unable to find a set matching ${set}`);
     };
 
     let allCardsInSet = [];
@@ -46,25 +49,31 @@ router.route("/:set").get((req, res) => {
             axios.get(setList.data.search_uri)
             .then( listOfCards => {
                 allCardsInSet = listOfCards.data.data;
-
+                
+                // FUNC. we can reuse this.
                 const getRandomCard = (arr) => {
                     randomNum = Math.floor(Math.random() * arr.length);
                     return arr[randomNum];
                 };
 
+                // FUNC. we need to reuse this
                 const addCardToBoosterPack = (arr) => {
+
                     let j = 0;
+
                     let randomCard = getRandomCard(arr);
+
                     while (booster.indexOf(randomCard) !== -1 || j > 5){
                         randomCard = getRandomCard(arr);
                         j++;
                         console.log(`FOUND A DUP!`);
-                    }
+                    };
+
                     booster.push(randomCard);
                 };
 
                 listOfAllCardImages = allCardsInSet.map( (card) => {
-                    if( card.hasOwnProperty("rarity") && card.hasOwnProperty("image_uris")) {
+                    if( card.hasOwnProperty("rarity") && card.hasOwnProperty("image_uris")) { //sad days, EDGE cards with two sides dont show up
                         switch (card.rarity) {
                             case "common":
                                 commonCards.push(card.image_uris.normal);
@@ -108,25 +117,81 @@ router.route("/:set").get((req, res) => {
                     booster.push(getRandomCard(listOfAllCardImages));;
                 };
 
-            //     // SEND FROM HERE!!
-                res.json(booster);
+                // TURN INTO CARDS NOW THAT WE HAVE THE LIST OF IMAGES
+                if (booster.length === 15) {
+                    // === START JIMP === //
+                    console.log("[Check Point][Jimp] Start");
+
+                    const cardWidth = 488;
+                    const cardHeight = 680;
+                    let row = 0;
+                    let col = 0;
+                    let jimps = []; // this is the REAL img NOT the url
+                    let totalCallbacks = booster.length; //number of boster packs * 15
+
+                    console.log("[Check Point][Jimp] Loading callbacks");
+                    for (let i = 0; i < totalCallbacks; i ++){
+                        jimps.push(jimp.read(booster[i]));
+                    };
+                    // jimps is full of images now
+
+                    console.log("[Check Point][Jimp] Making Promises");
+                    Promise.all(jimps)
+                    .then( _ => {
+                        return Promise.all(jimps);
+                    })
+                    .then( data => {
+                        
+                        console.log("[Check Point][Jimp] Promises came back");
+
+                        jimp.read(__dirname + "/temp/white_board.jpg")
+                        .then( image => {
+                            console.log("[Check Point][Jimp]Loading board and stickers");
+                            
+                            for ( let j = 0; j < jimps.length; j++){
+                                image.quality(30);
+
+                                image.composite(
+                                    data[j],
+                                    row * cardWidth,
+                                    col * cardHeight
+                                );
+
+                                if (row === 9) {
+                                    row = 0;
+                                    col++;
+                                } else {
+                                    row++;
+                                };
+                            };
+                            // TODO: Quality Option Var.
+                            // image.quality(40);
+
+                            console.log("[Check Point][Jimp] Hold onto your butts.");
+                            const fileName = Date.now();
+                            const theHerokuPath = path.join(__dirname, `./temp/booster${fileName}.jpg`);
+                            image.write(theHerokuPath, () => {
+                                console.log("[Check Point][Jimp] Making a new image.");
+                                res.sendFile(theHerokuPath);
+                            });
+                        })
+                    })
+
+                    // TRY TO STORE ON DYNO IN HEROKU IF THAT DOESNT WORK THEN WE WILL HOOK UP AWS
+
+                    // SEND THE FILE WITH THE CARDS ON IT.
+            
+                } else {
+                    res.json({ msg: "Booster Pack had less than 15 cards in it."});
+                };
             });
         })
         .catch( _ => {
-            res.send("Something has gone wrong. IDK");
+            res.json({ msg: "Something has gone wrong. IDK" });
         });
-    } catch (error) {
-        res.send("Unable to get that set");
+    } catch ( _ ) {
+        res.json({ msg: "Unable to get that set"});
     };
-    
-    // EDGE: loop => exit
-    // STEP 0: make empty booster = ["url", "url"] .length is 15
-    // STEP 1: random land / token if set has tokens
-    // STEP 2: 1 random card => CARD ART URLS
-    // STEP 3: Put all 3 types into their own Array
-    // STEP 4: 10 cards from c (no dup)
-    // STEP 5: 3 cards from u (no dup)
-    // STEP 6: 1 r(m)
 });
 
 module.exports = router;
