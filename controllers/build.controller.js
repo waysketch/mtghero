@@ -167,6 +167,8 @@ router.route("/:set").get((req, res) => {
                             image.quality(40);
 
                             console.log("[Check Point][Jimp] Hold onto your butts.");
+                            // res.send(image);
+
                             const fileName = Date.now();
                             const theHerokuPath = path.join(__dirname, `./temp/booster${fileName}.jpg`);
                             image.write(theHerokuPath, () => {
