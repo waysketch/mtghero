@@ -164,8 +164,7 @@ router.route("/:set").get((req, res) => {
                                     row++;
                                 };
                             };
-                            // TODO: Quality Option Var.
-                            // image.quality(40);
+                            image.quality(40);
 
                             console.log("[Check Point][Jimp] Hold onto your butts.");
                             const fileName = Date.now();
