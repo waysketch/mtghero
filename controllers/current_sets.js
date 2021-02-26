@@ -460,11 +460,6 @@ const allSets = [
         "code": "tsp"
     },
     {
-        "name": "Time Spiral Timeshifted",
-        "search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Atsb&unique=prints",
-        "code": "tsb"
-    },
-    {
         "name": "Coldsnap",
         "search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Acsp&unique=prints",
         "code": "csp"
