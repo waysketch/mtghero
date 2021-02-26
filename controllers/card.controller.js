@@ -31,10 +31,12 @@ router.route("/:card")
                 res.sendFile( path.join(__dirname, './cards/lands.jpg'));
                 break;
             case "clear" :
-                const dir = './temp';
+                const dir = path.join(__dirname, './temp');
                 try {
                     fs.rmdirSync(dir, { recursive: true });
-                    res.json({msg: "its done"});
+                    fs.mkdir(dir, () => {
+                        res.json({msg: "its done"});
+                    });
                 } catch (error) {
                     console.log('meh');
                     res.json({msg: "broken"});

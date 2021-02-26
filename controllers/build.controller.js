@@ -208,7 +208,17 @@ router.route("/:set").get((req, res) => {
                                                     const theHerokuPath = path.join(__dirname, `./temp/booster${fileName}.jpg`);
                                                     image.write(theHerokuPath, () => {
                                                         console.log("[Check Point][Jimp] Making a new image.");
-                                                        res.sendFile(theHerokuPath);
+                                                        // send file
+                                                        res.sendFile(theHerokuPath, () => {
+                                                            // delete file
+                                                            try {
+                                                                fs.unlinkSync(theHerokuPath, () => {
+                                                                    console.log('[DELETE] Removed file that was just made')
+                                                                });
+                                                            } catch (error) {
+                                                                console.log('[DELETE][ERROR] Unable to delete file')
+                                                            };
+                                                        });
                                                     });
                                                 })
                                         })
