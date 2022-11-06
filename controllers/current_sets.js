@@ -1,5 +1,10 @@
 const allSets = [
     {
+        "name": "brotherswar",
+        "search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Abro&unique=prints",
+        "code": "bro"
+    },
+    {
         "name": "Kaldheim",
         "search_uri": "https://api.scryfall.com/cards/search?order=set&q=e%3Akhm&unique=prints",
         "code": "khm"

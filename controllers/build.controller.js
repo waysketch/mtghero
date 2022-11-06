@@ -9,8 +9,18 @@ const path = require('path');
 
 // https://mtghero.herokuapp.com/booster/:set
 router.route("/:set").get((req, res) => {
-    const { set } = req.params;
+    let { set } = req.params;
     let code = "error";
+
+    const packs = set.slice(3);
+
+    if (packs.length > 0) {
+        console.log(packs);
+    }
+
+    set = set.slice(0,3);
+
+    console.log(set);
 
     // check if the set is in our list.
     allSets.forEach(item => { //TODO: use RegEx to remove special char. exp. Th'rl Thrl
